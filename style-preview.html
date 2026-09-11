@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>风格对比预览 · 3 形态 × 6 色相</title>
+<style>
+:root{
+  --font: 13.5px; --font-scale: 1;
+  --header-h: 50px; --icon: 22px; --sidebar-w: 320px;
+  --fs-h1: 1.15em; --fs-title: 1.02em; --fs-body: .93em; --fs-sm: .85em; --fs-xs: .78em;
+  --lh-tight: 1.3; --lh: 1.45; --lh-mono: 1.55;
+  --mono: ui-monospace, "Cascadia Code", Consolas, "Microsoft YaHei UI", monospace;
+}
+
+/* ============================================================
+   维度一：形态（只管结构：圆角 / 边框 / 阴影 / 间距 / 日志明暗）
+   ============================================================ */
+.app[data-form="hairline"]{
+  --card-radius:8px;  --ctrl-radius:6px;
+  --card-border:1px solid var(--line);
+  --card-shadow:none; --accent-bar:2px;
+  --pad:11px; --gap:10px; --gap-in:7px; --card-min:280px; --canvas-mix:0%;
+  --log-bg:var(--surface-2); --log-ink:var(--ink-700); --log-ok:var(--ok); --log-err:var(--bad);
+  --log-dim:var(--ink-300); --log-head:var(--ink-900);
+  --log-ic-bg:var(--primary-soft); --log-ic-fg:var(--primary-ink); --log-inner:none;
+}
+.app[data-form="fluent"]{
+  --card-radius:4px;  --ctrl-radius:4px;
+  --card-border:1px solid rgba(0,0,0,.09);
+  --card-shadow:none; --accent-bar:3px;
+  --pad:12px; --gap:10px; --gap-in:8px; --card-min:290px; --canvas-mix:11%;
+  --log-bg:#FFFFFF; --log-ink:var(--ink-700); --log-ok:var(--ok); --log-err:var(--bad);
+  --log-dim:var(--ink-300); --log-head:var(--ink-900);
+  --log-ic-bg:var(--primary-soft); --log-ic-fg:var(--primary-ink); --log-inner:none;
+}
+.app[data-form="bento"]{
+  --card-radius:14px; --ctrl-radius:8px;
+  --card-border:1px solid var(--line);
+  --card-shadow:0 1px 2px rgba(15,23,42,.06), 0 4px 12px rgba(15,23,42,.05); --accent-bar:0px;
+  --pad:14px; --gap:12px; --gap-in:9px; --card-min:260px; --canvas-mix:17%;
+  --log-bg:#1E2536; --log-ink:#C7D3E6; --log-ok:#7FE3B0; --log-err:#FF9A9E;
+  --log-dim:#8492A8; --log-head:#E9EEF7;
+  --log-ic-bg:rgba(255,255,255,.14); --log-ic-fg:#B9C8E8; --log-inner:rgba(255,255,255,.05);
+}
+
+/* ============================================================
+   维度二：色相（只管颜色：底 / 墨阶 / 主色 / 语义色）
+   ——所有关键配对实测对比度 ≥4.5:1（正文）或 ≥3:1（图形）
+   ============================================================ */
+/* 1. 蓝 · 冷白底 —— 技术感/工具感，通用安全 */
+.app[data-hue="blue"]{
+  --canvas-tint:#FBFBFC; --surface:#FFFFFF; --surface-2:#F5F7F9; --line:#E3E7EC;
+  --ink-900:#1B1F26; --ink-700:#3D4653; --ink-500:#5F6875; --ink-300:#A6AEBA;
+  --primary:#1F6FEB; --primary-hover:#1A5FCC; --primary-soft:#EAF2FE; --primary-ink:#1256C7;
+  --ok:#0B7A4B; --ok-soft:#E7F5EE; --bad:#B3261E; --bad-soft:#FBEAE8; --warn:#8A5A00; --warn-soft:#FDF3E3;
+}
+/* 2. 石墨 · 纯中性无彩色 —— 极致克制，零色相干扰 */
+.app[data-hue="graphite"]{
+  --canvas-tint:#F7F7F8; --surface:#FFFFFF; --surface-2:#F1F1F3; --line:#E4E4E7;
+  --ink-900:#1C1C1E; --ink-700:#3A3A40; --ink-500:#5C5C63; --ink-300:#A4A4AC;
+  --primary:#3A3F47; --primary-hover:#2A2E34; --primary-soft:#EDEDF0; --primary-ink:#33383F;
+  --ok:#0B7A4B; --ok-soft:#E7F5EE; --bad:#B3261E; --bad-soft:#FBEAE8; --warn:#8A5A00; --warn-soft:#FDF3E3;
+}
+/* 3. 墨绿 · 冷白偏青 —— 沉静耐看；「成功」语义并入主色，避免两个近绿打架 */
+.app[data-hue="emerald"]{
+  --canvas-tint:#F7FAF9; --surface:#FFFFFF; --surface-2:#EFF4F2; --line:#DFE8E5;
+  --ink-900:#17211E; --ink-700:#3A4A44; --ink-500:#586860; --ink-300:#A2AEB0;
+  --primary:#0E7357; --primary-hover:#0B5E47; --primary-soft:#E4F3EC; --primary-ink:#0A6349;
+  --ok:#0E7357; --ok-soft:#E4F3EC; --bad:#B3261E; --bad-soft:#FBEAE8; --warn:#8A5A00; --warn-soft:#FDF3E3;
+}
+/* 4. 琥珀 · 暖米纸感 —— 唯一暖调，与蓝白彻底拉开；编辑/纸感 */
+.app[data-hue="amber"]{
+  --canvas-tint:#FAF8F4; --surface:#FFFFFF; --surface-2:#F5F2EB; --line:#EAE3D8;
+  --ink-900:#221E17; --ink-700:#4A4438; --ink-500:#6B6252; --ink-300:#ADA495;
+  --primary:#9A5B0C; --primary-hover:#834C08; --primary-soft:#FAEEDA; --primary-ink:#7F4A08;
+  --ok:#0B7A4B; --ok-soft:#E7F5EE; --bad:#B3261E; --bad-soft:#FBEAE8; --warn:#8A5A00; --warn-soft:#FDF3E3;
+}
+/* 5. 靛紫 · 冷白偏紫 —— 有辨识度；对红绿色盲友好（紫/蓝通道差异大） */
+.app[data-hue="indigo"]{
+  --canvas-tint:#F9F9FC; --surface:#FFFFFF; --surface-2:#F2F2F8; --line:#E3E2EE;
+  --ink-900:#1C1B26; --ink-700:#3C3A4E; --ink-500:#5E5C70; --ink-300:#A6A4B8;
+  --primary:#5A45C9; --primary-hover:#4C39B0; --primary-soft:#EDEAFB; --primary-ink:#4A37AE;
+  --ok:#0B7A4B; --ok-soft:#E7F5EE; --bad:#B3261E; --bad-soft:#FBEAE8; --warn:#8A5A00; --warn-soft:#FDF3E3;
+}
+/* 6. 朱红 · 纸白 + 砖红 —— 瑞士编辑风；「失败」语义并入主色 */
+.app[data-hue="vermilion"]{
+  --canvas-tint:#FBF9F8; --surface:#FFFFFF; --surface-2:#F5F1F0; --line:#EBE2DE;
+  --ink-900:#201C1A; --ink-700:#463F3C; --ink-500:#665C58; --ink-300:#ADA19C;
+  --primary:#B23A26; --primary-hover:#98301F; --primary-soft:#FBEBE7; --primary-ink:#952F1F;
+  --ok:#0B7A4B; --ok-soft:#E7F5EE; --bad:#B23A26; --bad-soft:#FBEBE7; --warn:#8A5A00; --warn-soft:#FDF3E3;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#E9ECF1;color:#1B1F26;font-family:"Microsoft YaHei UI","PingFang SC",system-ui,sans-serif;font-size:var(--font);line-height:var(--lh)}
+
+/* ---------- 顶部切换器 ---------- */
+.switcher{position:sticky;top:0;z-index:60;background:#16202E;color:#fff;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:8px 14px;font-size:12.5px}
+.switcher .grp{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.switcher .lbl{color:#8FA3BF;margin-right:2px}
+.switcher button{background:#2A3444;color:#E6ECF5;border:1px solid #3A4658;border-radius:6px;padding:4px 10px;font-size:12.5px;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.switcher button:hover{border-color:#7FA6FF}
+.switcher button.active{background:#2C66F5;border-color:#2C66F5;color:#fff}
+.switcher button .dot{width:10px;height:10px;border-radius:50%;flex:none;box-shadow:inset 0 0 0 1px rgba(0,0,0,.18)}
+.switcher .meta{margin-left:auto;color:#8FA3BF}
+.switcher .meta b{color:#8FB6FF}
+
+/* ---------- 说明条 + 色板 ---------- */
+.notice{background:#FFFDF6;border-bottom:1px solid #EDE3C8;color:#6B5A2E;font-size:12.5px;padding:7px 14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.notice b{color:#4A3D15}
+.swatches{display:flex;gap:5px;flex-wrap:wrap}
+.sw{display:flex;align-items:center;gap:4px;font-size:11px;font-family:var(--mono);color:#6B5A2E;background:#fff;border:1px solid #EDE3C8;border-radius:5px;padding:2px 6px}
+.sw i{width:11px;height:11px;border-radius:3px;display:block;box-shadow:inset 0 0 0 1px rgba(0,0,0,.15)}
+
+/* ---------- 应用本体 ---------- */
+.app{container-type:inline-size;font-size:calc(var(--font)*var(--font-scale));max-width:1440px;margin:0 auto;padding:var(--gap);display:flex;flex-direction:column;gap:var(--gap);
+  background:color-mix(in srgb, var(--canvas-tint) calc(100% - var(--canvas-mix)), #D6D6D6);min-height:100vh}
+.app.preview-md{max-width:960px}
+.app.preview-sm{max-width:420px}
+
+.header{background:var(--surface);border:var(--card-border);border-left-width:var(--accent-bar);border-left-style:solid;border-left-color:var(--primary);border-radius:var(--card-radius);box-shadow:var(--card-shadow);height:var(--header-h);display:flex;align-items:center;justify-content:space-between;padding:0 var(--pad);gap:10px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.logo{width:32px;height:32px;border-radius:calc(var(--card-radius) - 1px);flex:none;display:grid;place-items:center;color:#fff;background:var(--primary)}
+.titles{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.header h1{font-size:var(--fs-h1);font-weight:700;line-height:var(--lh-tight)}
+.header .sub{font-size:var(--fs-xs);color:var(--ink-500);line-height:var(--lh-tight)}
+.status-pill{font-size:var(--fs-xs);font-weight:600;padding:4px 10px;border-radius:99px;background:var(--primary-soft);color:var(--primary-ink);white-space:nowrap}
+
+.layout{display:grid;grid-template-columns:minmax(0,1fr) var(--sidebar-w);gap:var(--gap);align-items:start}
+.left{display:flex;flex-direction:column;gap:var(--gap);min-width:0}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(var(--card-min),1fr));gap:var(--gap)}
+.card.wide{grid-column:1/-1}
+
+.card{background:var(--surface);border:var(--card-border);border-left-width:var(--accent-bar);border-left-style:solid;border-left-color:var(--primary);border-radius:var(--card-radius);box-shadow:var(--card-shadow);padding:var(--pad);display:flex;flex-direction:column;gap:var(--gap-in);min-width:0}
+.card-head{display:flex;align-items:center;gap:7px}
+.card-head h2{font-size:var(--fs-title);font-weight:700;flex:1 1 auto;line-height:var(--lh-tight)}
+.card-head .ic{width:var(--icon);height:var(--icon);flex:none;border-radius:calc(var(--ctrl-radius) - 1px);display:grid;place-items:center;font-size:13px;line-height:1;background:var(--primary-soft);color:var(--primary-ink)}
+.card.coming{background:var(--surface-2);box-shadow:none}
+.card.coming .ic{background:var(--line);color:var(--ink-500)}
+.card.coming h2{color:var(--ink-700)}
+
+.field{display:flex;align-items:baseline;gap:8px;font-size:var(--fs-body)}
+.field .k{color:var(--ink-500);flex:none}
+.field .v{color:var(--ink-900);word-break:break-all}
+.field .v.mono{font-family:var(--mono);font-size:var(--fs-sm);color:var(--ink-500)}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.spacer{flex:1 1 auto}
+
+button,select,input,textarea{font:inherit;font-size:var(--fs-body);color:var(--ink-900);background:var(--surface);border:1px solid var(--line);border-radius:var(--ctrl-radius);padding:5px 11px;cursor:pointer;line-height:var(--lh)}
+button:hover{border-color:var(--primary);color:var(--primary-ink)}
+button.primary{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600;padding:6px 16px}
+button.primary:hover{background:var(--primary-hover);border-color:var(--primary-hover);color:#fff}
+button.ghost{background:var(--surface-2);color:var(--primary-ink);border-color:transparent}
+button.ghost:hover{background:var(--primary-soft)}
+button.sm{padding:4px 9px;font-size:var(--fs-sm)}
+::placeholder{color:var(--ink-300)}
+textarea{width:100%;min-height:84px;resize:vertical;font-family:var(--mono);font-size:var(--fs-sm);line-height:var(--lh-mono);padding:7px 9px;cursor:text}
+
+.pill{font-size:var(--fs-xs);font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.pill.idle{background:var(--surface-2);color:var(--ink-500)}
+.pill.live{background:var(--ok-soft);color:var(--ok)}
+.pill.live::before{content:"";display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--ok);margin-right:5px;vertical-align:middle;animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.count{font-size:var(--fs-xs);font-weight:700;color:var(--primary-ink);background:var(--primary-soft);border-radius:99px;padding:2px 8px}
+.tag{font-size:var(--fs-xs);font-weight:600;color:var(--ink-500);background:var(--surface-2);border-radius:99px;padding:2px 7px}
+
+.filelist{max-height:140px;overflow:auto;border:1px solid var(--line);border-radius:var(--ctrl-radius);padding:4px;font-size:var(--fs-sm);display:flex;flex-direction:column;gap:1px;min-height:54px}
+.filelist .fi{padding:3px 7px;border-radius:5px;font-family:var(--mono);line-height:var(--lh-mono)}
+.filelist .fi:nth-child(odd){background:var(--surface-2)}
+.empty{color:var(--ink-500);font-size:var(--fs-sm);padding:10px 8px;text-align:center;width:100%}
+
+.status-line{font-size:var(--fs-body);color:var(--ink-900);font-weight:600}
+.pct{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--primary-ink);font-weight:700;font-size:var(--fs-body)}
+.progress{height:7px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.progress>i{display:block;height:100%;width:0;background:var(--primary);transition:width .25s;border-radius:99px}
+.stats .stat{font-weight:700;font-size:var(--fs-sm)}
+.stat.ok{color:var(--ok)}.stat.bad{color:var(--bad)}.stat.meta{color:var(--ink-500);font-weight:400}
+.opt{font-size:var(--fs-body);color:var(--ink-500);display:flex;align-items:center;gap:7px}
+.opt label.disabled{display:flex;align-items:center;gap:7px;cursor:not-allowed;opacity:.65}
+
+.log{background:var(--log-bg);border:var(--card-border);border-left-width:var(--accent-bar);border-left-style:solid;border-left-color:var(--primary);border-radius:var(--card-radius);box-shadow:var(--card-shadow);padding:var(--pad);display:flex;flex-direction:column;gap:var(--gap-in);position:sticky;top:calc(var(--gap) + 42px);max-height:calc(100vh - var(--gap)*2 - 42px)}
+.log .card-head h2{color:var(--log-head)}
+.log .card-head .ic{background:var(--log-ic-bg);color:var(--log-ic-fg)}
+.logbox{background:var(--log-inner);border:1px solid var(--line);border-radius:var(--ctrl-radius);padding:9px 10px;font-family:var(--mono);font-size:var(--fs-sm);line-height:var(--lh-mono);overflow:auto;flex:1 1 auto;color:var(--log-ink);white-space:pre-wrap;word-break:break-all;min-height:200px}
+.app[data-form="bento"] .logbox{border-color:rgba(255,255,255,.14)}
+.logbox .empty{color:var(--log-dim)}
+.logbox .lg-ok{color:var(--log-ok)}
+.logbox .lg-err{color:var(--log-err)}
+
+.action-bar{display:flex;gap:8px;align-items:center;background:var(--surface);border:var(--card-border);border-radius:var(--card-radius);box-shadow:var(--card-shadow);padding:9px var(--pad)}
+.action-bar .spacer{flex:1}
+
+@container (max-width:1199px){
+  .app>.header,.app>.layout{--gap:9px;--pad:10px;--gap-in:6px;--sidebar-w:0px}
+  .layout{grid-template-columns:1fr}
+  .log{position:static;max-height:300px}
+  .logbox{min-height:150px}
+}
+@container (max-width:767px){
+  .app>.header,.app>.layout{--gap:8px;--pad:9px;--font:13px;--header-h:46px;--icon:20px}
+  .cards{grid-template-columns:1fr}
+  .card.wide{grid-column:auto}
+  .row{flex-direction:column;align-items:stretch}
+  .row button,.row select,.row input{width:100%}
+  .field{flex-direction:column;align-items:stretch;gap:2px}
+  .action-bar{flex-wrap:wrap}
+  .action-bar button{flex:1 1 auto}
+  .header .sub{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="switcher">
+  <div class="grp">
+    <span class="lbl">形态</span>
+    <button data-form="hairline" class="active">Hairline 细线</button>
+    <button data-form="fluent">Fluent 方角</button>
+    <button data-form="bento">Bento 圆卡</button>
+  </div>
+  <div class="grp">
+    <span class="lbl">色相</span>
+    <button data-hue="blue" class="active"><i class="dot" style="background:#1F6FEB"></i>蓝</button>
+    <button data-hue="graphite"><i class="dot" style="background:#3A3F47"></i>石墨</button>
+    <button data-hue="emerald"><i class="dot" style="background:#0E7357"></i>墨绿</button>
+    <button data-hue="amber"><i class="dot" style="background:#9A5B0C"></i>琥珀</button>
+    <button data-hue="indigo"><i class="dot" style="background:#5A45C9"></i>靛紫</button>
+    <button data-hue="vermilion"><i class="dot" style="background:#B23A26"></i>朱红</button>
+  </div>
+  <div class="grp">
+    <span class="lbl">视口</span>
+    <button data-mode="lg" class="active">大 ≥1200</button>
+    <button data-mode="md">中 768–1199</button>
+    <button data-mode="sm">小 &lt;768</button>
+  </div>
+  <span class="meta">容器 <b id="vw">—</b> · 断点 <b id="bp">—</b></span>
+</div>
+
+<div class="notice">
+  <span id="hueDesc"><b>蓝</b> · 冷白底 · 技术感最强，通用安全</span>
+  <span class="swatches" id="swatches"></span>
+</div>
+
+<div class="app" id="app" data-form="hairline" data-hue="blue">
+  <header class="header">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M5 21h14"/></svg>
+      </div>
+      <div class="titles">
+        <h1>图片下载器</h1>
+        <div class="sub">Tauri 桌面端 · WebView 前端 + Rust 核心</div>
+      </div>
+    </div>
+    <div class="status-pill" id="connPill">浏览器预览模式</div>
+  </header>
+
+  <main class="layout">
+    <div class="left">
+      <div class="cards">
+        <section class="card">
+          <div class="card-head"><span class="ic">&#9678;</span><h2>实时监控</h2></div>
+          <div class="field"><span class="k">目录</span><span class="v" id="monitorPath">未选择监控目录</span></div>
+          <div class="row">
+            <button id="btnMonitorPick">选择目录</button>
+            <button class="ghost" id="btnMonitorStart">开始监控</button>
+            <span class="spacer"></span>
+            <span class="pill idle" id="monitorStatus">&#9675; 未监控</span>
+          </div>
+        </section>
+
+        <section class="card wide">
+          <div class="card-head"><span class="ic">&#10515;</span><h2>批量下载</h2></div>
+          <textarea id="urlArea" placeholder="每行一个图片 URL，例如：&#10;https://example.com/a.jpg&#10;https://example.com/b.png"></textarea>
+          <div class="row">
+            <button class="ghost sm" id="btnSample">填入示例</button>
+            <span class="spacer"></span>
+            <button id="btnOutputPick">选择输出目录</button>
+            <span class="v mono" id="outPath">未选择</span>
+          </div>
+          <div class="row"><button class="primary" id="btnDownload">开始下载</button></div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><span class="ic">&#9638;</span><h2>文件列表</h2><span class="count" id="fileCount">3</span></div>
+          <div class="filelist" id="fileList">
+            <div class="fi">IMG_2041.jpg</div><div class="fi">IMG_2042.jpg</div><div class="fi">IMG_2043.png</div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><span class="ic">&#9716;</span><h2>任务进度</h2><span class="pct" id="pctText">0%</span></div>
+          <div class="status-line" id="statusText">准备就绪</div>
+          <div class="progress"><i id="progressBar"></i></div>
+          <div class="row stats">
+            <span class="stat ok" id="doneLabel">成功 0</span>
+            <span class="stat meta" id="totalLabel">/ 0</span>
+            <span class="spacer"></span>
+            <span class="stat meta" id="sizeLabel">批次 1 · 0MB</span>
+          </div>
+        </section>
+
+        <section class="card coming">
+          <div class="card-head"><span class="ic">&#9881;</span><h2>高级选项</h2><span class="tag">规划中</span></div>
+          <div class="opt"><label class="disabled"><input type="checkbox" disabled> 自动压缩图片</label></div>
+          <div class="opt"><label class="disabled"><input type="checkbox" disabled> 智能去重</label></div>
+          <div class="opt"><label class="disabled">并发数 <input type="range" min="1" max="8" value="4" disabled></label></div>
+        </section>
+      </div>
+
+      <div class="action-bar">
+        <button class="ghost" id="btnPick2">选择输出目录</button>
+        <span class="spacer"></span>
+        <button class="ghost" id="btnClearLog">清空日志</button>
+      </div>
+    </div>
+
+    <aside class="log">
+      <div class="card-head"><span class="ic">&#10095;</span><h2>运行日志</h2></div>
+      <div class="logbox" id="logBox"></div>
+    </aside>
+  </main>
+</div>
+
+<script>
+(function(){
+  var app=document.getElementById('app'), logBox=document.getElementById('logBox');
+  var vwEl=document.getElementById('vw'), bpEl=document.getElementById('bp');
+
+  var HUE_DESC={
+    blue:      ['蓝','冷白底 · 技术感/工具感最强，通用安全','无'],
+    graphite:  ['石墨','纯中性无彩色 · 极致克制，零色相干扰，内容最突出','强调色偏暗，按钮靠"明度"而非"色彩"吸引注意'],
+    emerald:   ['墨绿','冷白偏青 · 沉静耐看，长时间使用不易疲劳','与「成功」语义同色相，已合并为同一色，避免两个近绿打架'],
+    amber:     ['琥珀','暖米纸感 · 唯一暖调，与蓝白彻底拉开，编辑/纸感','暖底会让白卡略显"黄"，若做图片预览需留意色偏'],
+    indigo:    ['靛紫','冷白偏紫 · 有辨识度，偏创意工具调性','对红绿色盲友好；紫在低端屏上易显脏'],
+    vermilion: ['朱红','纸白 + 砖红 · 瑞士编辑风，硬朗有态度','与「失败」语义同色相，已合并；红色主色不宜大面积使用']
+  };
+  var SW_KEYS=[['底','--canvas-tint'],['卡','--surface'],['线','--line'],['主字','--ink-900'],['次字','--ink-500'],['主色','--primary'],['浅底','--primary-soft'],['成功','--ok'],['失败','--bad']];
+
+  function log(msg,kind){
+    if(logBox.querySelector('.empty')) logBox.innerHTML='';
+    var t=new Date().toLocaleTimeString();
+    var d=document.createElement('div');
+    d.textContent='['+t+'] '+msg;
+    if(kind==='ok') d.className='lg-ok';
+    if(kind==='err') d.className='lg-err';
+    logBox.appendChild(d); logBox.scrollTop=logBox.scrollHeight;
+  }
+
+  function refreshSwatches(){
+    var hue=app.getAttribute('data-hue'), info=HUE_DESC[hue];
+    var cs=getComputedStyle(app);
+    var html='';
+    SW_KEYS.forEach(function(p){
+      var v=cs.getPropertyValue(p[1]).trim();
+      html+='<span class="sw"><i style="background:'+v+'"></i>'+p[0]+' '+v+'</span>';
+    });
+    document.getElementById('swatches').innerHTML=html;
+    document.getElementById('hueDesc').innerHTML='<b>'+info[0]+'</b> · '+info[1]+(info[2]!=='无'?' · <b>注意：</b>'+info[2]:'');
+  }
+
+  document.querySelectorAll('.switcher button[data-form]').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.switcher button[data-form]').forEach(function(x){x.classList.remove('active')});
+      b.classList.add('active');
+      app.setAttribute('data-form', b.dataset.form);
+      log('形态 → '+b.textContent);
+    });
+  });
+
+  document.querySelectorAll('.switcher button[data-hue]').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.switcher button[data-hue]').forEach(function(x){x.classList.remove('active')});
+      b.classList.add('active');
+      app.setAttribute('data-hue', b.dataset.hue);
+      refreshSwatches();
+      log('色相 → '+b.textContent.trim()+'（'+HUE_DESC[b.dataset.hue][1]+'）');
+    });
+  });
+
+  document.querySelectorAll('.switcher button[data-mode]').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.switcher button[data-mode]').forEach(function(x){x.classList.remove('active')});
+      b.classList.add('active');
+      app.classList.remove('preview-md','preview-sm');
+      if(b.dataset.mode==='md') app.classList.add('preview-md');
+      if(b.dataset.mode==='sm') app.classList.add('preview-sm');
+    });
+  });
+
+  document.getElementById('btnSample').addEventListener('click',function(){
+    document.getElementById('urlArea').value=['https://picsum.photos/id/1015/600/400','https://picsum.photos/id/1025/600/400','https://picsum.photos/id/1035/600/400'].join('\n');
+    log('已填入 3 个示例 URL');
+  });
+
+  document.getElementById('btnMonitorStart').addEventListener('click',function(){
+    document.getElementById('monitorPath').textContent='D:\\素材\\待处理图片';
+    var s=document.getElementById('monitorStatus');
+    s.textContent='● 监控中'; s.className='pill live';
+    log('已开始监控: D:\\素材\\待处理图片','ok');
+  });
+  ['btnMonitorPick','btnOutputPick','btnPick2'].forEach(function(id){
+    document.getElementById(id).addEventListener('click',function(){
+      document.getElementById('outPath').textContent='D:\\素材\\输出';
+      log('目录已选择: D:\\素材\\输出');
+    });
+  });
+
+  document.getElementById('btnDownload').addEventListener('click',function(){
+    var urls=document.getElementById('urlArea').value.split('\n').map(function(s){return s.trim()}).filter(Boolean);
+    if(!urls.length){log('请先填入图片 URL（或点「填入示例」）','err');return;}
+    var bar=document.getElementById('progressBar'), pct=document.getElementById('pctText');
+    document.getElementById('totalLabel').textContent='/ '+urls.length;
+    document.getElementById('statusText').textContent='下载中…';
+    var i=0;
+    log('开始下载 '+urls.length+' 个文件');
+    var t=setInterval(function(){
+      i++;
+      var p=Math.round(i/urls.length*100);
+      bar.style.width=p+'%'; pct.textContent=p+'%';
+      document.getElementById('doneLabel').textContent='成功 '+i;
+      log('下载 '+i+'/'+urls.length+': '+urls[i-1]);
+      if(i>=urls.length){clearInterval(t);document.getElementById('statusText').textContent='下载完成';log('下载完成','ok');}
+    },420);
+  });
+
+  document.getElementById('btnClearLog').addEventListener('click',function(){logBox.innerHTML=''});
+
+  var bpName={lg:'大屏 (≥1200)',md:'中屏 (768–1199)',sm:'小屏 (<768)'};
+  function apply(w){
+    var mode=w>=1200?'lg':(w>=768?'md':'sm');
+    bpEl.textContent=bpName[mode]; vwEl.textContent=Math.round(w)+'px';
+    var s=Math.max(0.94,Math.min(1.08,0.94+(w-420)/(1440-420)*0.14));
+    app.style.setProperty('--font-scale',s.toFixed(3));
+  }
+  if(window.ResizeObserver){new ResizeObserver(function(es){es.forEach(function(e){apply(e.contentRect.width)})}).observe(app);}
+  else{window.addEventListener('resize',function(){apply(app.clientWidth)});}
+  apply(app.clientWidth);
+
+  refreshSwatches();
+  log('双维度预览：顶部「形态」管结构，「色相」管配色，互不干扰，共 18 种组合');
+  log('提示：点「填入示例」→「开始下载」可看进度条与日志联动');
+})();
+</script>
+</body>
+</html>

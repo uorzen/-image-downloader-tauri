@@ -3,96 +3,275 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>图片下载器 · Tauri 桌面端</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'">
+<link rel="icon" href="data:,">
+<title>图片下载器</title>
 <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+<!-- 图标 sprite：Tabler 线性图标集（24×24 / stroke 2） -->
+<svg class="sprite" aria-hidden="true" focusable="false"><defs>
+  <symbol id="i-download" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5 5-5"/><path d="M12 4v12"/>
+  </symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 7a2 2 0 0 1 2-2h3.6a2 2 0 0 1 1.4.6L11.8 7H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+  </symbol>
+  <symbol id="i-pulse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 12h4l2.5-6 4 12L16 12h5"/>
+  </symbol>
+  <symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01"/>
+  </symbol>
+  <symbol id="i-bars" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 20h18"/><path d="M6 20v-5M12 20V8M18 20v-9"/>
+  </symbol>
+  <symbol id="i-sliders" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M4 7h5M15 7h5"/><circle cx="12" cy="7" r="2"/>
+    <path d="M4 12h11"/><circle cx="18" cy="12" r="2"/>
+    <path d="M4 17h2M10 17h10"/><circle cx="8" cy="17" r="2"/>
+  </symbol>
+  <symbol id="i-terminal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13 15h4"/>
+  </symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M6 9l6 6 6-6"/>
+  </symbol>
+  <symbol id="i-file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l5 5v11a2 2 0 0 1-2 2z"/><path d="M9 13h6M9 17h4"/>
+  </symbol>
+  <symbol id="i-table" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/>
+  </symbol>
+</defs></svg>
+
 <div class="app" id="app">
 
-  <header class="header">
-    <div class="bar"></div>
-    <div class="titles">
-      <h1>图片下载器</h1>
-      <div class="sub">WebView 前端 · Rust 核心 · 批量下载/智能匹配/自动压缩</div>
+  <!-- 顶栏：品牌 + 模式切换 + 连接状态 三合一，全页唯一的深色横锚 -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg class="i"><use href="#i-download"></use></svg>
+      </div>
+      <div class="titles">
+        <h1>图片下载器</h1>
+        <div class="sub">批量下载 URL，自动监听目录</div>
+      </div>
     </div>
+    <nav class="modebar" id="modebar" aria-label="工作模式">
+      <button type="button" class="mode-btn is-active" data-mode="download" aria-pressed="true">批量下载</button>
+      <button type="button" class="mode-btn" data-mode="watch" aria-pressed="false">实时监控</button>
+    </nav>
+    <div class="status-pill" id="connPill">就绪</div>
   </header>
 
-  <div class="layout">
-    <div class="left">
+  <!-- Bento 主网格：输出目录降级为裸配置条（非卡片），与功能区拉开分组 -->
+  <main class="layout" id="layout" data-mode="download">
 
-      <div class="cards">
-
-        <!-- 监控目录 -->
-        <section class="card">
-          <div class="card-title">实时监控</div>
-          <div class="val" id="monitorPath">未选择监控目录</div>
-          <div class="row" style="margin-top:8px">
-            <button id="btnMonitorPick">选择监控目录</button>
-            <button class="ghost" id="btnMonitorStart">开始监控</button>
-            <span class="spacer"></span>
-            <span class="val" id="monitorStatus">○ 未监控</span>
-          </div>
-        </section>
-
-        <!-- 下载源 -->
-        <section class="card">
-          <div class="card-title">下载任务</div>
-          <textarea id="urlArea" placeholder="每行一个图片 URL，例如：&#10;https://example.com/a.jpg&#10;https://example.com/b.png"></textarea>
-          <div class="row" style="margin-top:8px">
-            <span class="field-label" style="width:auto">输出目录</span>
-            <span class="val" id="outPath" style="flex:1">未选择</span>
-            <button id="btnOutputPick">选择目录</button>
-          </div>
-          <div class="row" style="margin-top:8px">
-            <button class="primary" id="btnDownload">开始下载</button>
-          </div>
-        </section>
-
-        <!-- 文件列表 -->
-        <section class="card">
-          <div class="card-title">文件列表</div>
-          <div class="val" id="fileCount">0 个文件</div>
-          <div class="filelist" id="fileList"></div>
-        </section>
-
-        <!-- 任务进度 -->
-        <section class="card">
-          <div class="card-title">任务进度</div>
-          <div class="val" id="statusText">准备就绪</div>
-          <div class="progress"><i id="progressBar"></i></div>
-          <div class="row" style="margin-top:8px">
-            <span class="stat ok" id="doneLabel">成功 0</span>
-            <span class="stat meta" id="totalLabel" style="padding-left:16px">/ 0</span>
-            <span class="spacer"></span>
-            <span class="stat meta" id="sizeLabel">批次 1 · 0MB</span>
-          </div>
-        </section>
-
+    <!-- 输出目录：两种模式共用的裸条 -->
+    <section class="a-output" aria-label="输出目录">
+      <div class="card-head">
+        <span class="ic"><svg class="i"><use href="#i-folder"></use></svg></span>
+        <h2>输出目录</h2>
       </div>
+      <span class="v mono out-path" id="outPath" title="点击复制路径">未选择</span>
+      <div class="row">
+        <button id="btnOutputPick">选择输出目录</button>
+        <button class="ghost sm" id="btnOpenOut">打开目录</button>
+      </div>
+    </section>
 
-      <div class="action-bar">
-        <button class="ghost" id="btnPick2">选择输出目录</button>
+    <!-- 主卡：批量下载（仅批量下载模式，跨 2 行，视觉重心） -->
+    <section class="card hero a-download">
+      <div class="card-head">
+        <span class="ic"><svg class="i"><use href="#i-download"></use></svg></span>
+        <h2>批量下载</h2>
+      </div>
+      <textarea id="urlArea" spellcheck="false" aria-label="图片 URL 列表" placeholder="每行一个图片 URL，例如：&#10;https://example.com/a.jpg&#10;https://example.com/b.png&#10;有 TXT 任务时优先按 TXT 下载；填好后 Ctrl+Enter 直接开始"></textarea>
+      <div class="row">
+        <button class="ghost sm" id="btnSample">填入示例</button>
         <span class="spacer"></span>
-        <button class="ghost" id="btnOpenLog">清空日志</button>
+        <button class="ghost sm hide" id="btnStop">停止</button>
+        <button class="primary" id="btnDownload" title="快捷键 Ctrl+Enter">开始下载</button>
       </div>
+    </section>
 
-    </div>
-
-    <!-- 运行日志 -->
-    <aside class="log">
-      <div class="card-title">运行日志</div>
-      <div class="toolbar">
-        <button class="ghost" id="btnClearLog">清空</button>
+    <!-- TXT 任务列表（仅批量下载模式）：原脚本核心输入，留空则按粘贴 URL 下载 -->
+    <section class="card a-txt">
+      <div class="card-head">
+        <span class="ic"><svg class="i"><use href="#i-file"></use></svg></span>
+        <h2>TXT 任务列表</h2>
+        <span class="count" id="txtCount" aria-label="TXT 文件数">0</span>
       </div>
-      <div class="logbox" id="logBox"></div>
+      <div class="filelist txtlist" id="txtList">
+        <div class="empty">添加包含 URL 的 TXT 文件；留空则按左侧粘贴的 URL 下载</div>
+      </div>
+      <div class="row">
+        <button class="ghost sm" id="btnAddTxt">添加 TXT</button>
+        <button class="ghost sm" id="btnClearTxt">清空</button>
+      </div>
+    </section>
+
+    <!-- 表格匹配（仅批量下载模式）：选表、选列、容差、预览 -->
+    <section class="card a-table">
+      <div class="card-head">
+        <span class="ic"><svg class="i"><use href="#i-table"></use></svg></span>
+        <h2>表格匹配</h2>
+        <span class="tag" id="tableTag">未加载</span>
+      </div>
+      <div class="field">
+        <span class="k">表格文件</span>
+        <span class="v mono" id="tableName">未选择</span>
+      </div>
+      <div class="row">
+        <select id="matchCol" aria-label="匹配列"><option value="">匹配列</option></select>
+        <select id="renameCol" aria-label="重命名列"><option value="">重命名列</option></select>
+      </div>
+      <div class="row">
+        <div class="stepper" data-cfg="tolerance" data-min="0" data-max="5">
+          <button type="button" data-step="-1" aria-label="减少容差">−</button>
+          <output id="optTolerance">2</output>
+          <button type="button" data-step="1" aria-label="增加容差">+</button>
+        </div>
+        <span class="hint-inline">容差字符数</span>
+        <span class="spacer"></span>
+        <button class="ghost sm" id="btnPickTable">选择表格</button>
+        <button class="ghost sm" id="btnPreview">匹配预览</button>
+      </div>
+    </section>
+
+    <!-- 主卡：实时监控（仅实时监控模式，跨 2 行） -->
+    <section class="card hero a-monitor">
+      <div class="card-head">
+        <span class="ic"><svg class="i"><use href="#i-pulse"></use></svg></span>
+        <h2>实时监控</h2>
+        <span class="pill idle" id="monitorStatus">未监控</span>
+      </div>
+      <div class="field">
+        <span class="k">监控目录</span>
+        <span class="v" id="monitorPath">未选择</span>
+      </div>
+      <div class="row">
+        <button id="btnMonitorPick">选择监控目录</button>
+        <span class="spacer"></span>
+        <button class="primary" id="btnMonitorStart">开始监控</button>
+      </div>
+      <div class="watch-stat" id="watchStat">监听目录内的新增图片，自动下载到输出目录</div>
+    </section>
+
+    <!-- 文件列表（仅批量下载模式） -->
+    <section class="card a-files">
+      <div class="card-head">
+        <span class="ic"><svg class="i"><use href="#i-list"></use></svg></span>
+        <h2>文件列表</h2>
+        <span class="count" id="fileCount" aria-label="文件数">0</span>
+      </div>
+      <div class="filelist" id="fileList">
+        <div class="empty" id="fileEmpty">选择输出目录后显示其中文件</div>
+      </div>
+    </section>
+
+    <!-- 任务进度：数字 display 化，完成时进度条转语义绿 -->
+    <section class="card a-progress">
+      <div class="card-head">
+        <span class="ic"><svg class="i"><use href="#i-bars"></use></svg></span>
+        <h2>任务进度</h2>
+        <span class="pct" id="pctText">0%</span>
+      </div>
+      <div class="status-line" id="statusText">准备就绪</div>
+      <div class="progress" id="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="progressBar"></i></div>
+      <div class="row stats">
+        <span class="stat-num ok" id="doneNum">0</span><span class="stat-lab">成功</span>
+        <span class="stat-num bad" id="failNum">0</span><span class="stat-lab">失败</span>
+        <span class="stat-sep" aria-hidden="true">/</span>
+        <span class="stat-num" id="totalNum">0</span><span class="stat-lab">总计</span>
+        <span class="spacer"></span>
+        <span class="stat-lab" id="sizeLabel">等待开始</span>
+      </div>
+    </section>
+
+    <!-- 高级选项：折叠面板，8 项全部真实配置（持久化到 localStorage） -->
+    <section class="card a-options">
+      <details class="adv">
+        <summary class="card-head">
+          <span class="ic"><svg class="i"><use href="#i-sliders"></use></svg></span>
+          <h2>高级选项</h2>
+          <span class="count" id="advOn" aria-label="已启用项">启用 1/9</span>
+          <svg class="i chev" aria-hidden="true"><use href="#i-chev"></use></svg>
+        </summary>
+        <div class="adv-list">
+          <div class="adv-row">
+            <div class="adv-txt"><b>自动去重 TXT 文件</b><small>按文件名去重，忽略「名字 (1)」这类副本</small></div>
+            <input type="checkbox" role="switch" class="switch" id="optDedup" checked>
+          </div>
+          <div class="adv-row">
+            <div class="adv-txt"><b>按 TXT 文件名创建子文件夹</b><small>以匹配名或 TXT 文件名在输出目录内建子文件夹</small></div>
+            <input type="checkbox" role="switch" class="switch" id="optSubfolder">
+          </div>
+          <div class="adv-row">
+            <div class="adv-txt"><b>表格匹配</b><small>开启后按「表格匹配」卡的选择重命名下载文件</small></div>
+            <input type="checkbox" role="switch" class="switch" id="optSheet">
+          </div>
+          <div class="adv-row">
+            <div class="adv-txt"><b>开机自动启动</b><small>登录 Windows 后自动运行本程序</small></div>
+            <input type="checkbox" role="switch" class="switch" id="optAutostart">
+          </div>
+          <div class="adv-row">
+            <div class="adv-txt"><b>并发下载数</b><small>同时下载的文件数，1-8</small></div>
+            <div class="stepper" data-cfg="concurrency" data-min="1" data-max="8">
+              <button type="button" data-step="-1" aria-label="减少">−</button>
+              <output id="optConcurrency">4</output>
+              <button type="button" data-step="1" aria-label="增加">+</button>
+            </div>
+          </div>
+          <div class="adv-row">
+            <div class="adv-txt"><b>每 TXT 下载数</b><small>每个 TXT 文件最多下载的 URL 数，0 为不限</small></div>
+            <div class="stepper" data-cfg="maxCount" data-min="0" data-max="99">
+              <button type="button" data-step="-1" aria-label="减少">−</button>
+              <output id="optMaxCount">5</output>
+              <button type="button" data-step="1" aria-label="增加">+</button>
+            </div>
+          </div>
+          <div class="adv-row">
+            <div class="adv-txt"><b>重名冲突</b><small>输出目录已有同名文件时的处理方式</small></div>
+            <div class="seg" data-cfg="conflict">
+              <button type="button" data-val="rename" class="on">自动改名</button>
+              <button type="button" data-val="skip">跳过</button>
+              <button type="button" data-val="overwrite">覆盖</button>
+            </div>
+          </div>
+          <div class="adv-row">
+            <div class="adv-txt"><b>失败重试</b><small>单文件下载失败后的自动重试次数</small></div>
+            <div class="stepper" data-cfg="retry" data-min="0" data-max="3">
+              <button type="button" data-step="-1" aria-label="减少">−</button>
+              <output id="optRetry">1</output>
+              <button type="button" data-step="1" aria-label="增加">+</button>
+            </div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- 运行日志：右栏收窄，与深色顶栏呼应；log-body 绝对定位内滚，不撑高网格 -->
+    <aside class="log a-log">
+      <div class="card-head">
+        <span class="ic"><svg class="i"><use href="#i-terminal"></use></svg></span>
+        <h2>运行日志</h2>
+        <button class="ghost sm" id="btnClearLog">清空</button>
+      </div>
+      <div class="log-body">
+        <div class="logbox" id="logBox" role="log" aria-live="polite"></div>
+      </div>
     </aside>
-  </div>
+  </main>
 </div>
 
+<!-- 响应式调试条：仅浏览器预览可见 -->
 <div class="preview-bar">
-  <span>视口 <b id="vw">—</b> · 断点 <b id="bp">—</b></span>
+  <span>视口 <b id="vw">…</b> · 断点 <b id="bp">…</b></span>
   <button data-mode="lg" class="active">大 ≥1200</button>
-  <button data-mode="md">中 768–1199</button>
+  <button data-mode="md">中 768-1199</button>
   <button data-mode="sm">小 &lt;768</button>
 </div>
 

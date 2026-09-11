@@ -17,14 +17,22 @@ strip = true
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-# Tauri 核心：系统 WebView 封装 + 命令/事件桥接
-tauri = { version = "2", features = [] }
+# Tauri 核心：系统 WebView 封装 + 命令/事件桥接（tray-icon = 系统托盘）
+tauri = { version = "2", features = ["tray-icon"] }
 # 原生文件夹/文件选择对话框
 tauri-plugin-dialog = "2"
+# 开机自动启动
+tauri-plugin-autostart = "2"
+# 单实例：重复启动时聚焦已有窗口
+tauri-plugin-single-instance = "2"
 # 异步 HTTP 下载（Windows 用系统 SChannel，无需 OpenSSL）
 reqwest = { version = "0.12" }
 # 文件系统实时监控（等价于原 Python watchdog）
 notify = "6"
+# 并发下载（Semaphore/延时）
+tokio = { version = "1", features = ["rt", "sync", "time"] }
+# Excel 读取（xlsx/xls，表格匹配用）
+calamine = "0.26"
 # 配置序列化
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

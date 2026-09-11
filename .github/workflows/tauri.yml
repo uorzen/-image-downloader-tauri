@@ -10,6 +10,11 @@ on:
     tags: ['v*']
   workflow_dispatch:
 
+# 同一分支重复触发时，自动取消仍在跑的旧构建，避免并行烧 GitHub 分钟（Windows runner 按 2x 计费）
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 # 允许工作流创建 Release 并把产物挂上去
 permissions:
   contents: write
@@ -46,7 +51,18 @@ jobs:
           projectPath: '.'
           tagName: v__VERSION__
           releaseName: '图片下载器 v__VERSION__'
-          releaseBody: '由 GitHub Actions 自动构建的 Windows 安装包（nsis）。'
+          releaseBody: '由 GitHub Actions 自动构建：nsis 安装包 + 免安装绿色版 exe（依赖系统 WebView2，Win10/11 自带）。'
           releaseDraft: true      # 先发为草稿，你确认无误后再手动 publish
           prerelease: false
           args: '--release'
+
+      # 绿色版：裸 exe 前端资源已内嵌，单文件可跑（不需要安装）
+      - name: 上传绿色版 exe 到 Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ver = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          Copy-Item src-tauri/target/release/image-downloader.exe "image-downloader-v$ver-portable.exe"
+          gh release upload "v$ver" "image-downloader-v$ver-portable.exe" --clobber
+          echo "绿色版已挂到 Release v$ver"

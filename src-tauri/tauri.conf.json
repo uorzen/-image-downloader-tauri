@@ -6,7 +6,7 @@
   "build": {
     "beforeDevCommand": "py -m http.server 5173 --directory ../src",
     "devUrl": "http://localhost:5173",
-    "beforeBuildCommand": "",
+    "beforeBuildCommand": null,
     "frontendDist": "../src"
   },
   "app": {
