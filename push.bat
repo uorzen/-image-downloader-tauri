@@ -3,6 +3,10 @@ cd /d "%~dp0"
 set "LOG=%~dp0push_log.txt"
 echo [%date% %time%] === push start === > "%LOG%"
 
+rem GitHub must go through local proxy (direct connection fails)
+set "HTTPS_PROXY=http://127.0.0.1:7897"
+set "HTTP_PROXY=http://127.0.0.1:7897"
+
 where git >nul 2>&1
 if errorlevel 1 (
   echo [ERROR] git not found in PATH. Install Git for Windows, or run these commands in Git Bash instead.
@@ -16,11 +20,9 @@ git init >> "%LOG%" 2>&1
 git config user.name "uorzen" >> "%LOG%" 2>&1
 git config user.email "uorzen@users.noreply.github.com" >> "%LOG%" 2>&1
 git add . >> "%LOG%" 2>&1
-git commit -m "init tauri project" >> "%LOG%" 2>&1
+git commit -m "update tauri project" >> "%LOG%" 2>&1
 if errorlevel 1 (
-  echo [FAIL] git commit failed. See push_log.txt
-  pause
-  exit /b 1
+  echo [WARN] nothing new to commit, will push current HEAD.
 )
 git branch -M main >> "%LOG%" 2>&1
 git remote remove origin >nul 2>&1
