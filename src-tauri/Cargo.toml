@@ -1,0 +1,30 @@
+[package]
+name = "image-downloader"
+version = "0.1.0"
+description = "图片下载器 · Tauri 桌面端"
+authors = ["you"]
+edition = "2021"
+
+# 仅发布模式隐藏控制台窗口（Windows）
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# Tauri 核心：系统 WebView 封装 + 命令/事件桥接
+tauri = { version = "2", features = [] }
+# 原生文件夹/文件选择对话框
+tauri-plugin-dialog = "2"
+# 异步 HTTP 下载（Windows 用系统 SChannel，无需 OpenSSL）
+reqwest = { version = "0.12" }
+# 文件系统实时监控（等价于原 Python watchdog）
+notify = "6"
+# 配置序列化
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

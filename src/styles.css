@@ -1,0 +1,153 @@
+/* ============================================================
+   设计令牌（与桌面端 PrintFit 风格一致：浅蓝灰底 + 白卡 + 亮蓝）
+   变量随断点 / 容器宽度动态改写，实现响应式缩放
+   ============================================================ */
+:root {
+  --bg: #EEF1F6;
+  --card: #FFFFFF;
+  --primary: #2F6BFF;
+  --primary-soft: #E7EEFF;
+  --text: #1F2733;
+  --muted: #8A94A6;
+  --border: #E2E8F2;
+  --success: #1FA971;
+  --fail: #E5484D;
+  --warn: #E8A317;
+
+  --gap: 16px;
+  --pad: 16px;
+  --radius: 12px;
+  --font: 14px;
+  --font-scale: 1;
+  --header-h: 56px;
+  --sidebar-w: 340px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Microsoft YaHei UI", "PingFang SC", "Hiragino Sans GB", system-ui, sans-serif;
+  font-size: calc(var(--font) * var(--font-scale));
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 容器查询根：子元素用 @container 响应「容器宽度」而非视口 */
+.app {
+  container-type: inline-size;
+  max-width: 1440px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: var(--gap);
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  background: var(--bg);
+}
+.app.preview-md { max-width: 960px; }
+.app.preview-sm { max-width: 420px; }
+
+/* 顶部标题栏 */
+.header {
+  background: #fff; border-radius: var(--radius);
+  height: var(--header-h); display: flex; align-items: center;
+  padding: 0 18px; gap: 12px; box-shadow: 0 1px 2px rgba(31,39,51,.04);
+}
+.header .bar { width: 4px; align-self: stretch; background: var(--primary); border-radius: 4px; }
+.header .titles { display: flex; flex-direction: column; justify-content: center; }
+.header h1 { font-size: 1.15em; font-weight: 700; }
+.header .sub { font-size: .72em; color: var(--muted); }
+
+/* 主体栅格：默认两栏（左卡片区 + 右日志） */
+.layout { display: grid; grid-template-columns: minmax(0,1fr) var(--sidebar-w); gap: var(--gap); align-items: start; }
+.left { display: flex; flex-direction: column; gap: var(--gap); min-width: 0; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--gap); }
+
+/* 卡片 */
+.card {
+  background: var(--card); border-radius: var(--radius); padding: var(--pad);
+  border-left: 3px solid var(--primary); box-shadow: 0 1px 2px rgba(31,39,51,.04); min-width: 0;
+}
+.card-title { font-weight: 700; font-size: .95em; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.row + .row { margin-top: 10px; }
+.field-label { color: var(--muted); width: 8ch; flex: none; font-size: .9em; }
+.spacer { flex: 1 1 auto; }
+.val { color: var(--muted); font-size: .9em; word-break: break-all; }
+
+/* 控件外观（轻量，无框架） */
+button, select, input, textarea {
+  font: inherit; color: var(--text); background: #fff;
+  border: 1px solid var(--border); border-radius: 8px;
+  padding: 7px 12px; cursor: pointer;
+}
+button:hover { border-color: var(--primary); }
+button.primary { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
+button.primary:hover { background: #1F56E0; }
+button.ghost { background: var(--bg); color: var(--primary); border-color: transparent; }
+select, input, textarea { cursor: text; }
+select { cursor: pointer; }
+textarea { width: 100%; min-height: 96px; resize: vertical; font-family: ui-monospace, Consolas, monospace; font-size: .85em; }
+.progress { height: 8px; background: var(--border); border-radius: 99px; overflow: hidden; margin-top: 8px; }
+.progress > i { display: block; height: 100%; width: 0%; background: var(--primary); transition: width .2s; }
+.stat { font-weight: 700; }
+.stat.ok { color: var(--success); }
+.stat.bad { color: var(--fail); }
+.stat.meta { color: var(--muted); font-weight: 400; }
+
+/* 文件列表 */
+.filelist {
+  margin-top: 6px; max-height: 160px; overflow: auto;
+  border: 1px solid var(--border); border-radius: 8px; padding: 6px;
+  font-size: .85em; display: flex; flex-direction: column; gap: 2px;
+}
+.filelist .fi { padding: 3px 6px; border-radius: 6px; }
+.filelist .fi:nth-child(odd) { background: #F7F9FC; }
+
+/* 日志面板 */
+.log {
+  background: var(--card); border-radius: var(--radius); padding: var(--pad);
+  border-left: 3px solid var(--primary); display: flex; flex-direction: column;
+  gap: 8px; position: sticky; top: var(--gap); max-height: calc(100vh - var(--gap) * 2);
+}
+.log .toolbar { display: flex; justify-content: flex-end; gap: 6px; }
+.log .logbox {
+  background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px;
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace; font-size: .8em;
+  line-height: 1.6; overflow: auto; flex: 1 1 auto; color: var(--text); white-space: pre-wrap; word-break: break-all;
+}
+
+/* 底部操作栏 */
+.action-bar { display: flex; gap: 10px; align-items: center; background: #fff; border-radius: var(--radius); padding: 10px 16px; box-shadow: 0 1px 2px rgba(31,39,51,.04); }
+.action-bar .spacer { flex: 1; }
+
+/* 断点 1：中屏 ≤1199px → 单栏 */
+@container (max-width: 1199px) {
+  .layout { grid-template-columns: 1fr; }
+  .log { position: static; max-height: 360px; }
+  :root { --gap: 14px; --pad: 14px; --sidebar-w: 0px; }
+}
+/* 断点 2：小屏 ≤767px → 全堆叠 */
+@container (max-width: 767px) {
+  :root { --gap: 12px; --pad: 12px; --font: 13px; --header-h: 50px; }
+  .cards { grid-template-columns: 1fr; }
+  .row { flex-direction: column; align-items: stretch; }
+  .field-label { width: auto; }
+  .action-bar { flex-wrap: wrap; }
+  .action-bar button { flex: 1 1 auto; }
+  .header .sub { display: none; }
+}
+@container (max-width: 420px) {
+  :root { --font: 12.5px; --pad: 10px; }
+}
+
+/* 断点预览工具条（仅演示用） */
+.preview-bar {
+  position: fixed; right: 14px; bottom: 14px; z-index: 50;
+  background: #1F2733; color: #fff; border-radius: 10px; padding: 8px 10px;
+  font-size: 12px; display: flex; align-items: center; gap: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.25);
+}
+.preview-bar b { color: #7FB0FF; }
+.preview-bar button { background: #2A3442; color: #fff; border: 1px solid #3A4658; border-radius: 6px; padding: 4px 8px; font-size: 12px; }
+.preview-bar button.active { background: var(--primary); border-color: var(--primary); }

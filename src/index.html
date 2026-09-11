@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>图片下载器 · Tauri 桌面端</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <header class="header">
+    <div class="bar"></div>
+    <div class="titles">
+      <h1>图片下载器</h1>
+      <div class="sub">WebView 前端 · Rust 核心 · 批量下载/智能匹配/自动压缩</div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="left">
+
+      <div class="cards">
+
+        <!-- 监控目录 -->
+        <section class="card">
+          <div class="card-title">实时监控</div>
+          <div class="val" id="monitorPath">未选择监控目录</div>
+          <div class="row" style="margin-top:8px">
+            <button id="btnMonitorPick">选择监控目录</button>
+            <button class="ghost" id="btnMonitorStart">开始监控</button>
+            <span class="spacer"></span>
+            <span class="val" id="monitorStatus">○ 未监控</span>
+          </div>
+        </section>
+
+        <!-- 下载源 -->
+        <section class="card">
+          <div class="card-title">下载任务</div>
+          <textarea id="urlArea" placeholder="每行一个图片 URL，例如：&#10;https://example.com/a.jpg&#10;https://example.com/b.png"></textarea>
+          <div class="row" style="margin-top:8px">
+            <span class="field-label" style="width:auto">输出目录</span>
+            <span class="val" id="outPath" style="flex:1">未选择</span>
+            <button id="btnOutputPick">选择目录</button>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button class="primary" id="btnDownload">开始下载</button>
+          </div>
+        </section>
+
+        <!-- 文件列表 -->
+        <section class="card">
+          <div class="card-title">文件列表</div>
+          <div class="val" id="fileCount">0 个文件</div>
+          <div class="filelist" id="fileList"></div>
+        </section>
+
+        <!-- 任务进度 -->
+        <section class="card">
+          <div class="card-title">任务进度</div>
+          <div class="val" id="statusText">准备就绪</div>
+          <div class="progress"><i id="progressBar"></i></div>
+          <div class="row" style="margin-top:8px">
+            <span class="stat ok" id="doneLabel">成功 0</span>
+            <span class="stat meta" id="totalLabel" style="padding-left:16px">/ 0</span>
+            <span class="spacer"></span>
+            <span class="stat meta" id="sizeLabel">批次 1 · 0MB</span>
+          </div>
+        </section>
+
+      </div>
+
+      <div class="action-bar">
+        <button class="ghost" id="btnPick2">选择输出目录</button>
+        <span class="spacer"></span>
+        <button class="ghost" id="btnOpenLog">清空日志</button>
+      </div>
+
+    </div>
+
+    <!-- 运行日志 -->
+    <aside class="log">
+      <div class="card-title">运行日志</div>
+      <div class="toolbar">
+        <button class="ghost" id="btnClearLog">清空</button>
+      </div>
+      <div class="logbox" id="logBox"></div>
+    </aside>
+  </div>
+</div>
+
+<div class="preview-bar">
+  <span>视口 <b id="vw">—</b> · 断点 <b id="bp">—</b></span>
+  <button data-mode="lg" class="active">大 ≥1200</button>
+  <button data-mode="md">中 768–1199</button>
+  <button data-mode="sm">小 &lt;768</button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

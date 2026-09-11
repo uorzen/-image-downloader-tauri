@@ -1,0 +1,9 @@
+# 本地日志与构建产物，不进仓库
+push_log.txt
+target/
+*.log
+
+# 系统文件
+Thumbs.db
+ehthumbs.db
+.DS_Store

@@ -1,0 +1,52 @@
+name: Build Tauri (Windows)
+
+# 触发条件：
+#   1. 推送到 main 分支
+#   2. 打 v* 标签（如 v0.1.0）
+#   3. 在 Actions 页面手动点 "Run workflow"
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+
+# 允许工作流创建 Release 并把产物挂上去
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    # Tauri 出 Windows 安装包必须在 Windows runner 上跑
+    runs-on: windows-latest
+    steps:
+      - name: Checkout 源码
+        uses: actions/checkout@v4
+
+      - name: 安装 Rust 工具链
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: 缓存 Cargo 依赖（~1.5-2GB registry + target，避免每次重拉）
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      # windows-latest 镜像已自带 WebView2 Runtime，一般无需额外安装。
+      # 若 CI 报缺 WebView2，取消下面这段注释即可（用 Evergreen 引导器装）：
+      # - name: 安装 WebView2 Runtime
+      #   run: |
+      #     Invoke-WebRequest -Uri https://go.microsoft.com/fwlink/p/?LinkId=2124703 -OutFile webview2.exe
+      #     Start-Process -Wait -FilePath .\webview2.exe -ArgumentList "/silent","/install"
+
+      - name: 编译并发布安装包
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # 仓库根即为 Tauri 工程（含 src/ 与 src-tauri/）
+          projectPath: '.'
+          tagName: v__VERSION__
+          releaseName: '图片下载器 v__VERSION__'
+          releaseBody: '由 GitHub Actions 自动构建的 Windows 安装包（nsis）。'
+          releaseDraft: true      # 先发为草稿，你确认无误后再手动 publish
+          prerelease: false
+          args: '--release'
