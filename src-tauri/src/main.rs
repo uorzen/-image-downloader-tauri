@@ -17,6 +17,7 @@ use tauri::tray::TrayIconBuilder;
 use tauri::{Emitter, Manager};
 use tauri_plugin_autostart::ManagerExt as _;
 use tauri_plugin_dialog::DialogExt;
+use notify::Watcher;
 
 /* ============================================================
    托管状态
@@ -98,7 +99,8 @@ fn pick_directory(app: tauri::AppHandle) -> Option<String> {
     app.dialog()
         .file()
         .blocking_pick_folder()
-        .map(|p| p.to_string_lossy().into_owned())
+        // v2 对话框插件返回 FilePath 枚举，实现 Display，直接转字符串
+        .map(|p| p.to_string())
 }
 
 /// 多选 TXT 文件
@@ -110,7 +112,7 @@ fn pick_txt_files(app: tauri::AppHandle) -> Option<Vec<String>> {
         .blocking_pick_files()
         .map(|fs| {
             fs.iter()
-                .map(|p| p.to_string_lossy().into_owned())
+                .map(|p| p.to_string())
                 .collect()
         })
 }
@@ -122,7 +124,7 @@ fn pick_table_file(app: tauri::AppHandle) -> Option<String> {
         .file()
         .add_filter("表格文件", &["xlsx", "xls", "csv"])
         .blocking_pick_file()
-        .map(|p| p.to_string_lossy().into_owned())
+        .map(|p| p.to_string())
 }
 
 /// 用资源管理器打开目录（Windows）
@@ -216,7 +218,7 @@ fn read_table(path: &str) -> Result<(Vec<String>, Vec<Vec<String>>), String> {
         }
     } else if ext == "xls" {
         let mut wb: calamine::Xls<_> =
-            calamine::open_workbook(path).map_err(|e| e.to_string())?;
+            calamine::open_workbook(path).map_err(|e: calamine::XlsError| e.to_string())?;
         let range = wb
             .worksheet_range_at(0)
             .ok_or("表格为空")?
@@ -226,7 +228,7 @@ fn read_table(path: &str) -> Result<(Vec<String>, Vec<Vec<String>>), String> {
         }
     } else {
         let mut wb: calamine::Xlsx<_> =
-            calamine::open_workbook(path).map_err(|e| e.to_string())?;
+            calamine::open_workbook(path).map_err(|e: calamine::XlsxError| e.to_string())?;
         let range = wb
             .worksheet_range_at(0)
             .ok_or("表格为空")?
