@@ -154,7 +154,8 @@ html, body {
 /* ============================================================
    Bento 主网格
      download：主卡=批量下载(跨2行) | 文件列表 + 任务进度 | 日志通栏
-     watch   ：主卡=实时监控(跨2行) | 任务进度 + 高级选项 | 日志通栏
+     watch   ：监控卡只占一行（内容少，跨行会大片留白），
+               任务进度在右列，高级选项拉通全宽（两列设计刚好铺满）
    ============================================================ */
 .layout {
   display: grid;
@@ -176,7 +177,7 @@ html, body {
   grid-template-areas:
     "output   output    log"
     "monitor  progress  log"
-    "monitor  options   log";
+    "options  options   log";
 }
 .layout[data-mode="download"] .a-monitor { display: none; }
 .layout[data-mode="watch"] .a-download,
