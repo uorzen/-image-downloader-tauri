@@ -18,6 +18,7 @@ use tauri::{Emitter, Manager};
 use tauri_plugin_autostart::ManagerExt as _;
 use tauri_plugin_dialog::DialogExt;
 use notify::Watcher;
+use calamine::Reader;
 
 /* ============================================================
    托管状态
@@ -702,11 +703,12 @@ fn start_watch(path: String, app: tauri::AppHandle) -> Result<(), String> {
         .watch(std::path::Path::new(&path), notify::RecursiveMode::Recursive)
         .map_err(|e| e.to_string())?;
 
+    let app_for_thread = app.clone();
     std::thread::spawn(move || {
         for res in rx {
             if let Ok(event) = res {
                 for p in event.paths {
-                    let _ = app.emit(
+                    let _ = app_for_thread.emit(
                         "fs-event",
                         FsEvent {
                             path: p.to_string_lossy().into_owned(),
