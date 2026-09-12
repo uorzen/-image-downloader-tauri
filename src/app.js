@@ -389,13 +389,18 @@
         const base = baseName(p).replace(/\.[^.]+$/, '');
         const name = (matches && matches[i] && matches[i].matched) || base;
         if (matches && (!matches[i] || !matches[i].matched)) log(`表格未匹配: ${baseName(p)}，按原文件名处理`, 'err');
-        let urls;
-        try {
-          const content = await invoke('read_text', { path: p });
-          urls = content.split('\n').map(s => s.trim()).filter(Boolean);
-        } catch (e) {
-          log(`文件读取失败: ${baseName(p)}`, 'err');
-          continue;
+        let urls = [];
+        // 新落盘文件可能还没写完：读取失败或为空时重试，避免误判成空文件
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            const content = await invoke('read_text', { path: p });
+            urls = content.split('\n').map(s => s.trim()).filter(Boolean);
+            if (urls.length) break;
+          } catch (e) {
+            log(`文件读取失败（第 ${attempt + 1} 次）: ${baseName(p)}`, 'err');
+            urls = [];
+          }
+          if (attempt < 2) await new Promise(r => setTimeout(r, 600));
         }
         if (adv.maxCount > 0) urls = urls.slice(0, adv.maxCount);
         if (!urls.length) { log(`空文件跳过: ${baseName(p)}`, 'err'); continue; }
@@ -535,21 +540,37 @@
 
   // ---------- 监听后端事件：文件系统监控 ----------
   let watchEvents = 0;
+  // 监控自动下载：新 TXT 入列后防抖触发（多个文件一起落盘只开一轮）；
+  // 若上一轮还在下载，则推迟到结束后再跑，保证新文件进得了任务
+  let autoTimer = null;
+  const isBusy = () => btnDownload.classList.contains('is-busy');
+  function scheduleAutoDownload() {
+    if (autoTimer) clearTimeout(autoTimer);
+    autoTimer = setTimeout(() => {
+      autoTimer = null;
+      if (!outputPath) { log('[监控] 未设置输出目录，无法自动下载', 'err'); return; }
+      if (isBusy()) { scheduleAutoDownload(); return; }
+      log('[监控] 新 TXT 已入列，自动开始下载', 'ok');
+      btnDownload.click();
+    }, 1200);
+  }
   listen('fs-event', (e) => {
     const f = e.payload;
     watchEvents++;
     watchStatEl.textContent = `已捕获 ${watchEvents} 个变更事件，最近：${f.kind}`;
     log(`[监控] ${f.kind} ${f.path}`);
-    // 新增 .txt 自动入列（对齐原脚本 process_new_txt_file）
-    if (watching && /\.txt$/i.test(f.path) && f.kind.includes('Create')) {
-      if (!txtFiles.includes(f.path)) {
-        if (adv.dedup && txtFiles.some(p => normTxtName(p) === normTxtName(f.path))) {
-          log(`[监控] 重复文件跳过: ${baseName(f.path)}`);
-        } else {
-          txtFiles.push(f.path);
-          renderTxt();
-          log(`[监控] 新 TXT 已加入任务列表: ${baseName(f.path)}`, 'ok');
-        }
+    // 新增 .txt 自动入列并触发下载（对齐原脚本 process_new_txt_file）
+    if (watching && /\.txt$/i.test(f.path)) {
+      const known = txtFiles.includes(f.path) ||
+        (adv.dedup && txtFiles.some(p => normTxtName(p) === normTxtName(f.path)));
+      // Windows 上部分程序写文件只发 Modify 不发 Create，两类都收
+      if (!known && (f.kind.includes('Create') || f.kind.includes('Modify'))) {
+        txtFiles.push(f.path);
+        renderTxt();
+        log(`[监控] 新 TXT 已加入任务列表: ${baseName(f.path)}`, 'ok');
+      }
+      if (txtFiles.includes(f.path) && (f.kind.includes('Create') || f.kind.includes('Modify'))) {
+        scheduleAutoDownload();
       }
     }
     if (outputPath && f.path.startsWith(outputPath)) renderList(outputPath);
