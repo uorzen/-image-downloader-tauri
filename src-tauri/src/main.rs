@@ -670,6 +670,22 @@ fn stop_download(state: tauri::State<StopFlag>) {
     state.0.store(true, Ordering::SeqCst);
 }
 
+/// 启动即后台监控：把主窗口收起来（托盘仍在）
+#[tauri::command]
+fn hide_window(app: tauri::AppHandle) {
+    if let Some(w) = app.get_webview_window("main") {
+        let _ = w.hide();
+    }
+}
+
+/// 调试模式：打开 WebView2 开发者工具（依赖 devtools 特性）
+#[tauri::command]
+fn open_devtools(app: tauri::AppHandle) {
+    if let Some(w) = app.get_webview_window("main") {
+        w.open_devtools();
+    }
+}
+
 /* ============================================================
    开机启动（tauri-plugin-autostart）
    ============================================================ */
@@ -760,6 +776,8 @@ fn main() {
             preview_match,
             download_batch,
             stop_download,
+            hide_window,
+            open_devtools,
             autostart_status,
             autostart_toggle,
             start_watch

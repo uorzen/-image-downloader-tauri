@@ -218,6 +218,14 @@
             <input type="checkbox" role="switch" class="switch" id="optAutostart">
           </div>
           <div class="adv-row">
+            <div class="adv-txt"><b>启动即后台监控</b><small>打开程序自动进入监控模式并收进托盘（需先保存过监控目录）</small></div>
+            <input type="checkbox" role="switch" class="switch" id="optAutoWatch">
+          </div>
+          <div class="adv-row">
+            <div class="adv-txt"><b>调试模式</b><small>启动时自动打开开发者工具（Console），用于定位问题</small></div>
+            <input type="checkbox" role="switch" class="switch" id="optDebug">
+          </div>
+          <div class="adv-row">
             <div class="adv-txt"><b>并发下载数</b><small>同时下载的文件数，1-8</small></div>
             <div class="stepper" data-cfg="concurrency" data-min="1" data-max="8">
               <button type="button" data-step="-1" aria-label="减少">−</button>

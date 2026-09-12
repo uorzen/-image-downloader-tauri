@@ -79,6 +79,14 @@
   }
   const baseName = (p) => (p.split(/[\\/]/).pop() || p);
 
+  // ---------- 路径记忆：输出/监控目录持久化，重启免重选 ----------
+  const PATH_KEY = 'imgdl.paths.v1';
+  function loadPaths() { try { return JSON.parse(localStorage.getItem(PATH_KEY) || '{}'); } catch (_) { return {}; } }
+  function savePath(k, v) {
+    const o = loadPaths(); o[k] = v;
+    try { localStorage.setItem(PATH_KEY, JSON.stringify(o)); } catch (_) {}
+  }
+
   async function renderList(p) {
     try {
       const files = await invoke('list_directory', { path: p });
@@ -120,7 +128,7 @@
   $('btnMonitorPick').addEventListener('click', async () => {
     if (!guard()) return;
     const p = await invoke('pick_directory');
-    if (p) { monitorPath = p; monitorPathEl.textContent = p; log('监控目录: ' + p); }
+    if (p) { monitorPath = p; monitorPathEl.textContent = p; savePath('monitor', p); log('监控目录: ' + p); }
   });
   $('btnMonitorStart').addEventListener('click', async () => {
     if (!guard()) return;
@@ -137,7 +145,7 @@
   async function pickOutput() {
     if (!guard()) return;
     const p = await invoke('pick_directory');
-    if (p) { outputPath = p; outPathEl.textContent = p; outPathEl.classList.add('filled'); log('输出目录: ' + p); renderList(p); }
+    if (p) { outputPath = p; outPathEl.textContent = p; outPathEl.classList.add('filled'); savePath('output', p); log('输出目录: ' + p); renderList(p); }
   }
   $('btnOutputPick').addEventListener('click', pickOutput);
   $('btnOpenOut').addEventListener('click', async () => {
@@ -178,6 +186,7 @@
   const ADV_KEY = 'imgdl.adv.v2';
   const ADV_DEFAULT = {
     dedup: true, subfolder: false, sheet: false, autostart: false,
+    autoWatch: false, debug: false,
     concurrency: 4, maxCount: 5, conflict: 'rename', retry: 1, tolerance: 2
   };
   let adv = { ...ADV_DEFAULT };
@@ -187,15 +196,17 @@
   // 「启用计数」= 与默认值不同的项数（dedup 默认开，计 1）
   function advEnabledCount() {
     return (adv.dedup ? 1 : 0) + (adv.subfolder ? 1 : 0) + (adv.sheet ? 1 : 0) + (adv.autostart ? 1 : 0)
+      + (adv.autoWatch ? 1 : 0) + (adv.debug ? 1 : 0)
       + (adv.concurrency !== 4 ? 1 : 0) + (adv.maxCount !== 5 ? 1 : 0)
       + (adv.conflict !== 'rename' ? 1 : 0) + (adv.retry !== 1 ? 1 : 0) + (adv.tolerance !== 2 ? 1 : 0);
   }
   function renderAdvOn() {
-    $('advOn').textContent = `启用 ${advEnabledCount()}/9`;
+    $('advOn').textContent = `启用 ${advEnabledCount()}/11`;
   }
 
   // 开关类（autostart 单独走后端）
-  for (const [id, key] of [['optDedup', 'dedup'], ['optSubfolder', 'subfolder'], ['optSheet', 'sheet']]) {
+  for (const [id, key] of [['optDedup', 'dedup'], ['optSubfolder', 'subfolder'], ['optSheet', 'sheet'],
+                           ['optAutoWatch', 'autoWatch'], ['optDebug', 'debug']]) {
     const el = $(id);
     el.checked = !!adv[key];
     el.addEventListener('change', () => {
@@ -443,6 +454,50 @@
   });
 
   $('btnClearLog').addEventListener('click', () => setEmpty(logBox, EMPTY_LOG));
+
+  // ---------- 恢复上次路径 ----------
+  if (TAURI) {
+    const saved = loadPaths();
+    if (saved.output) {
+      outputPath = saved.output;
+      outPathEl.textContent = saved.output;
+      outPathEl.classList.add('filled');
+      renderList(saved.output);
+      log('已恢复输出目录: ' + saved.output);
+    }
+    if (saved.monitor) {
+      monitorPath = saved.monitor;
+      monitorPathEl.textContent = saved.monitor;
+      log('已恢复监控目录: ' + saved.monitor);
+    }
+  }
+
+  // ---------- 启动编排：调试模式 / 启动即后台监控 ----------
+  (async () => {
+    if (!TAURI) return;
+    log('桥接就绪：progress / fs-event / second-instance 监听已注册');
+    if (adv.debug) {
+      try { await invoke('open_devtools'); log('调试模式：开发者工具已打开', 'warn'); }
+      catch (e) { log('打开开发者工具失败: ' + e, 'err'); }
+    }
+    if (adv.autoWatch) {
+      setMode('watch');
+      if (monitorPath) {
+        try {
+          await invoke('start_watch', { path: monitorPath });
+          watching = true;
+          monitorStatusEl.textContent = '监控中';
+          monitorStatusEl.className = 'pill live';
+          log('启动即监控：已开始监听 ' + monitorPath, 'ok');
+        } catch (e) {
+          log('启动监控失败: ' + e, 'err');
+        }
+      } else {
+        log('启动即监控：还没有保存过监控目录，本次跳过', 'err');
+      }
+      try { await invoke('hide_window'); } catch (_) {}
+    }
+  })();
 
   // ---------- 监听后端事件：下载进度 ----------
   listen('progress', (e) => {

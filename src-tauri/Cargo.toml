@@ -18,7 +18,7 @@ tauri-build = { version = "2", features = [] }
 
 [dependencies]
 # Tauri 核心：系统 WebView 封装 + 命令/事件桥接（tray-icon = 系统托盘）
-tauri = { version = "2", features = ["tray-icon"] }
+tauri = { version = "2", features = ["tray-icon", "devtools"] }
 # 原生文件夹/文件选择对话框
 tauri-plugin-dialog = "2"
 # 开机自动启动
