@@ -3,9 +3,9 @@ cd /d "%~dp0"
 set "LOG=%~dp0push_log.txt"
 echo [%date% %time%] === push start === > "%LOG%"
 
-rem GitHub must go through local proxy (direct connection fails)
-set "HTTPS_PROXY=http://127.0.0.1:7897"
-set "HTTP_PROXY=http://127.0.0.1:7897"
+rem GitHub must go through local proxy (direct connection fails); socks5 is more stable than http mode
+set "HTTPS_PROXY=socks5://127.0.0.1:7897"
+set "HTTP_PROXY=socks5://127.0.0.1:7897"
 
 where git >nul 2>&1
 if errorlevel 1 (

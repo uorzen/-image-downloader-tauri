@@ -54,7 +54,7 @@ jobs:
           releaseBody: '由 GitHub Actions 自动构建：nsis 安装包 + 免安装绿色版 exe（依赖系统 WebView2，Win10/11 自带）。'
           releaseDraft: true      # 先发为草稿，你确认无误后再手动 publish
           prerelease: false
-          args: '--release'
+          # Tauri v2 CLI 默认即 release 构建，--release 参数已被移除，不要加
 
       # 绿色版：裸 exe 前端资源已内嵌，单文件可跑（不需要安装）
       - name: 上传绿色版 exe 到 Release
