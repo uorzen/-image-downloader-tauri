@@ -42,6 +42,21 @@ jobs:
       #     Invoke-WebRequest -Uri https://go.microsoft.com/fwlink/p/?LinkId=2124703 -OutFile webview2.exe
       #     Start-Process -Wait -FilePath .\webview2.exe -ArgumentList "/silent","/install"
 
+      # 同版本重复构建时，先删掉旧草稿里的同名资产，避免上传报 already_exists
+      - name: 清理旧草稿同名资产
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $ver = (Get-Content src-tauri/tauri.conf.json -Raw | ConvertFrom-Json).version
+          $rel = gh api "repos/${{ github.repository }}/releases" | ConvertFrom-Json | Where-Object { $_.tag_name -eq "v$ver" -and $_.draft }
+          if ($rel) {
+            foreach ($a in $rel.assets) {
+              gh api -X DELETE "repos/${{ github.repository }}/releases/assets/$($a.id)"
+              echo "已删除旧资产: $($a.name)"
+            }
+          } else { echo "v$ver 无旧草稿，跳过" }
+
       - name: 编译并发布安装包
         uses: tauri-apps/tauri-action@v0
         env:
